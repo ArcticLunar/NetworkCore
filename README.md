@@ -1,5 +1,8 @@
 # NetworkCore
 
+<p align="center">
+  <img src="./Assets/banner.png" alt="NetworkCore" width="720">
+</p>
 <div align="center">
   <p>
     <strong>A production-grade networking framework for Apple platforms.</strong>
