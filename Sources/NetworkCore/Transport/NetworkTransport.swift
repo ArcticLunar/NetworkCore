@@ -1,3 +1,6 @@
+// Copyright (c) 2026 ArcticLunar
+// All rights reserved.
+
 public protocol NetworkTransport {
     func send(
         _ request: TransportRequest,

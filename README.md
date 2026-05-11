@@ -1,3 +1,8 @@
+<!--
+Copyright (c) 2026 ArcticLunar
+All rights reserved.
+-->
+
 # NetworkCore
 
 <p align="center">

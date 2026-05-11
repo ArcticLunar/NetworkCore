@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ArcticLunar
+# All rights reserved.
+
 Pod::Spec.new do |s|
   s.name             = 'NetworkCore'
   s.version          = '1.0.0'

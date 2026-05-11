@@ -1,3 +1,8 @@
+<!--
+Copyright (c) 2026 ArcticLunar
+All rights reserved.
+-->
+
 # Publishing NetworkCore
 
 `NetworkCore` 同时支持 Swift Package Manager 和 CocoaPods。

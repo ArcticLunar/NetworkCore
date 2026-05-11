@@ -1,5 +1,8 @@
 // swift-tools-version: 5.10
 
+// Copyright (c) 2026 ArcticLunar
+// All rights reserved.
+
 import PackageDescription
 
 let package = Package(

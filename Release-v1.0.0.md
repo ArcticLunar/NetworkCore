@@ -1,3 +1,8 @@
+<!--
+Copyright (c) 2026 ArcticLunar
+All rights reserved.
+-->
+
 # NetworkCore 1.0.0
 
 `NetworkCore 1.0.0` 是首个对外发布版本，目标是提供一套可直接用于生产环境的 iOS/macOS 网络框架基础设施。

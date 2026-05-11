@@ -1,3 +1,6 @@
+// Copyright (c) 2026 ArcticLunar
+// All rights reserved.
+
 public protocol AuthCredentialsStore {
     func tokens() async throws -> AuthTokens?
     func save(tokens: AuthTokens) async

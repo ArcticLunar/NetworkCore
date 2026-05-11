@@ -1,3 +1,8 @@
+<!--
+Copyright (c) 2026 ArcticLunar
+All rights reserved.
+-->
+
 # NetworkCore Migration
 
 这份文档描述的是从“应用内手工拼装网络栈”迁移到 `NetworkCore V1` 统一装配的建议路径。

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 ArcticLunar
+// All rights reserved.
+
 public actor UnauthorizedCoordinator {
     private let handler: any UnauthorizedHandler
     private var hasHandled = false
