@@ -1,13 +1,17 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供容错解码 helper，用于兼容线上接口字段类型漂移或局部脏数据。
+
 import Foundation
 
+/// 为 `Defaulted` 提供字段缺失或类型不匹配时的默认值。
 public protocol SafeDecodingDefaultValueProvider {
     associatedtype Value: Decodable
     static var defaultValue: Value { get }
 }
 
+/// 字段解码失败时回退到 Provider 默认值，并记录一次 warning。
 @propertyWrapper
 public struct Defaulted<Provider: SafeDecodingDefaultValueProvider>: Decodable {
     public var wrappedValue: Provider.Value
@@ -34,6 +38,7 @@ public struct Defaulted<Provider: SafeDecodingDefaultValueProvider>: Decodable {
 
 extension Defaulted: Equatable where Provider.Value: Equatable {}
 
+/// 数组元素局部解码失败时丢弃坏元素，保留其它可用元素。
 public struct LossyArray<Element: Decodable>: Decodable {
     public let elements: [Element]
 
@@ -60,6 +65,7 @@ public struct LossyArray<Element: Decodable>: Decodable {
     }
 }
 
+/// 字典 value 局部解码失败时丢弃坏 key，保留其它可用键值。
 public struct LossyDictionary<Value: Decodable>: Decodable {
     public let values: [String: Value]
 
@@ -91,6 +97,7 @@ public struct LossyDictionary<Value: Decodable>: Decodable {
 extension LossyArray: Equatable where Element: Equatable {}
 extension LossyDictionary: Equatable where Value: Equatable {}
 
+/// 兼容服务端把整数返回为字符串的字段。
 public struct StringBackedInt: Decodable, Equatable {
     public let value: Int
 
@@ -123,6 +130,7 @@ public struct StringBackedInt: Decodable, Equatable {
     }
 }
 
+/// 兼容服务端把布尔值返回为字符串或 0/1 的字段。
 public struct StringBackedBool: Decodable, Equatable {
     public let value: Bool
 
@@ -168,6 +176,7 @@ public struct StringBackedBool: Decodable, Equatable {
 }
 
 enum SafeDecodingContext {
+    // 使用 TaskLocal 收集当前解码任务中的容错 warning，避免污染并发请求。
     @TaskLocal static var collector: SafeDecodingCollector?
 }
 
@@ -201,6 +210,7 @@ struct NetworkDecodingSupport {
 
         case .safe:
             let collector = SafeDecodingCollector()
+            // safe 模式只在声明了容错 wrapper/helper 的字段上降级，普通字段仍按系统解码失败。
             let value = try SafeDecodingContext.$collector.withValue(collector) {
                 try decoder.decode(T.self, from: data)
             }
@@ -214,6 +224,7 @@ struct NetworkDecodingSupport {
 }
 
 public extension KeyedDecodingContainer {
+    /// 让缺失字段也可以通过 `@Defaulted` 回退默认值。
     func decode<Provider>(
         _ type: Defaulted<Provider>.Type,
         forKey key: Key

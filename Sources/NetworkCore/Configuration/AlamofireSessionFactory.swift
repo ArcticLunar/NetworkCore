@@ -1,13 +1,17 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 统一创建 Alamofire Session 和 server trust manager。
+
 import Alamofire
 import Foundation
 #if canImport(Security)
 @preconcurrency import Security
 #endif
 
+/// 将 NetworkCore 的安全策略转换成 Alamofire 可执行的 Session 配置。
 public enum AlamofireSessionFactory {
+    /// 创建用于普通请求的 Alamofire Session。
     public static func makeSession(
         timeout: TimeInterval = 15,
         eventMonitors: [any EventMonitor] = [],
@@ -24,6 +28,7 @@ public enum AlamofireSessionFactory {
         )
     }
 
+    /// 根据安全策略创建 server trust manager；没有指定 host 时返回 nil 走系统默认行为。
     public static func makeServerTrustManager(
         securityPolicy: NetworkSecurityPolicy
     ) -> ServerTrustManager? {

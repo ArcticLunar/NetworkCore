@@ -1,13 +1,19 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义日志脱敏能力，避免敏感 header 和 body 字段泄漏。
+
 import Foundation
 
+/// 对请求/响应日志中的敏感信息做脱敏。
 public protocol NetworkRedactor {
+    /// 脱敏 header 字典。
     func redact(headers: [String: String]) -> [String: String]
+    /// 脱敏 body 数据；无法解析时可返回原始 body 或 nil。
     func redact(body: Data?, contentType: String?) -> Data?
 }
 
+/// 默认脱敏器，支持 JSON 和 form-urlencoded body。
 public struct DefaultNetworkRedactor: NetworkRedactor {
     private let sensitiveHeaderFields: Set<String>
     private let sensitiveBodyFields: Set<String>
@@ -59,6 +65,7 @@ public struct DefaultNetworkRedactor: NetworkRedactor {
             return redactFormURLEncodedBody(body)
         }
 
+        // 未标明 Content-Type 时按 JSON 尝试脱敏，兼容部分接口漏传头字段。
         if normalizedContentType.isEmpty ||
             normalizedContentType.contains("json") ||
             normalizedContentType.contains("+json") {

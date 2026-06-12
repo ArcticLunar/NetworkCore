@@ -1,12 +1,16 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将 observer 事件转换为 metrics 计数器和耗时指标。
+
 import Foundation
 
+/// NetworkCore 默认 metrics observer。
 public struct NetworkMetricsObserver: NetworkObserver {
     private let sink: any NetworkMetricsSink
     private let dimensionsPolicy: NetworkMetricsDimensionsPolicy
 
+    /// metrics 不受端点 logging 开关影响，避免关闭日志时丢失核心指标。
     public var delivery: NetworkObserverDelivery { .always }
 
     public init(

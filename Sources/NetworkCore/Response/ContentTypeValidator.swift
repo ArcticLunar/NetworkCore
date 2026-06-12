@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 校验非空普通响应的 Content-Type 是否符合端点契约。
+
 import Foundation
 
+/// Content-Type validator，默认用于阻止 HTML、纯文本等非预期响应进入 JSON 解码。
 public struct ContentTypeValidator: ResponseValidator {
     public init() {}
 
@@ -22,6 +25,7 @@ public struct ContentTypeValidator: ResponseValidator {
             return
         }
 
+        // 下载和空响应没有 JSON body 契约，因此只对有 body 的普通响应校验 Content-Type。
         let acceptableContentTypes = context.acceptableContentTypes.map(normalizeContentType(_:))
         guard acceptableContentTypes.isEmpty == false else {
             return

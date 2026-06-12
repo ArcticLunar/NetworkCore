@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 管理后台下载的排队、暂停、恢复、进度广播和持久化恢复。
+
 import Foundation
 
+/// 后台下载管理器。
 public final class BackgroundDownloadManager: @unchecked Sendable {
     public static let defaultSessionIdentifier =
         NetworkDefaults.defaultBackgroundDownloadSessionIdentifier()
@@ -69,6 +72,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         )
     }
 
+    /// 订阅后台下载生命周期事件。
     public func events() -> AsyncStream<BackgroundTransferEvent> {
         let token = UUID()
 
@@ -87,6 +91,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         }
     }
 
+    /// 订阅适合 UI 展示的后台下载状态快照。
     public func statusUpdates() -> AsyncStream<BackgroundTransferStatus> {
         let token = UUID()
 
@@ -105,6 +110,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         }
     }
 
+    /// 创建后台下载任务并保存恢复记录。
     public func enqueueDownload(
         request: URLRequest,
         destination: URL,
@@ -138,6 +144,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         return receipt
     }
 
+    /// 暂停下载并保存 resume data。
     public func pauseDownload(
         identifier: String
     ) async throws -> BackgroundDownloadRecord {
@@ -162,6 +169,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         return record
     }
 
+    /// 使用 resume data 或原始请求恢复下载。
     public func resumeDownload(
         identifier: String
     ) async throws -> BackgroundTransferReceipt {
@@ -203,6 +211,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
         return receipt
     }
 
+    /// 恢复本地持久化的下载记录，并重新同步系统活跃任务。
     public func restorePersistedDownloads() async throws -> [BackgroundDownloadRecord] {
         try await driver.restoreActiveDownloads()
         let records = try resumeStore.loadAllRecords()
@@ -221,6 +230,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
     ) {
         driver.attachBackgroundEventsCompletionHandler(completionHandler)
 
+        // 系统唤醒后台 session 后，先恢复记录，确保后续事件能带上原请求上下文。
         Task { [weak self] in
             try? await self?.restorePersistedDownloads()
         }
@@ -663,6 +673,7 @@ public final class BackgroundDownloadManager: @unchecked Sendable {
 
 }
 
+// 隔离 URLSession 后台下载细节，便于测试替换 driver。
 protocol BackgroundDownloadDriving: Sendable {
     var sessionIdentifier: String { get }
 
@@ -689,6 +700,7 @@ protocol BackgroundDownloadDriving: Sendable {
     func restoreActiveDownloads() async throws
 }
 
+// driver 回传给 manager 的底层下载事件。
 enum BackgroundDownloadDriverEvent: Sendable {
     case progress(
         identifier: String,
@@ -723,6 +735,7 @@ private final class URLSessionBackgroundDownloadDriver:
     private var backgroundEventsCompletionHandler: (() -> Void)?
     private var tasksByIdentifier: [String: URLSessionDownloadTask] = [:]
 
+    // URLSession 必须懒加载，确保 delegate 和 completion handler 注册顺序可控。
     private lazy var session: URLSession = {
         let configuration = URLSessionConfiguration.background(
             withIdentifier: configuredSessionIdentifier

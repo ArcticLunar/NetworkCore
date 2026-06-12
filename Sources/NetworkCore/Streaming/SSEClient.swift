@@ -1,14 +1,18 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 实现 Server-Sent Events 连接、解析和重连。
+
 import Foundation
 
+/// 加载 SSE 字节流并按行输出。
 public protocol SSEConnectionLoading: Sendable {
     func load(
         request: URLRequest
     ) async throws -> (lines: AsyncThrowingStream<String, Error>, response: URLResponse)
 }
 
+/// 基于 URLSession bytes API 的 SSE loader。
 public final class URLSessionSSEConnectionLoader: SSEConnectionLoading, @unchecked Sendable {
     private let urlSession: URLSession
 
@@ -43,6 +47,7 @@ public final class URLSessionSSEConnectionLoader: SSEConnectionLoading, @uncheck
     }
 }
 
+/// SSE 客户端，负责创建可重连的 SSE 连接。
 public final class SSEClient: @unchecked Sendable {
     private let loader: any SSEConnectionLoading
     private let defaultReconnectDelay: TimeInterval
@@ -75,6 +80,7 @@ public final class SSEClient: @unchecked Sendable {
 }
 
 private final class SSEConnection: NetworkStreamConnection, @unchecked Sendable {
+    // SSE 协议以空行作为事件边界，多行 data 需要按换行合并后再派发。
     private struct SSEParser {
         var id: String?
         var event: String?
@@ -248,6 +254,7 @@ private final class SSEConnection: NetworkStreamConnection, @unchecked Sendable 
                             lastEventID = eventID
                         }
                         if let retry = event.retry {
+                            // SSE retry 字段单位是毫秒，内部统一转换成秒。
                             reconnectDelay = max(Double(retry) / 1000, 0)
                         }
                         continuation?.yield(.serverSentEvent(event))

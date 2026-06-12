@@ -1,14 +1,18 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 协调流式连接重连前的网络可达性和 circuit breaker gating。
+
 import Foundation
 
+/// 流式连接重连前后的协调接口。
 public protocol NetworkStreamReconnectControlling: Sendable {
     func awaitReconnectReadiness() async throws
     func reconnectDidSucceed() async
     func reconnectDidFail(with error: Error) async
 }
 
+/// 默认重连协调器，重连前等待网络满足要求并通过 circuit breaker 准入。
 public actor DefaultNetworkStreamReconnectController: NetworkStreamReconnectControlling {
     private let reachabilityMonitor: (any NetworkReachabilityMonitor)?
     private let reachabilityRequirement: NetworkReachabilityRequirement
@@ -39,6 +43,7 @@ public actor DefaultNetworkStreamReconnectController: NetworkStreamReconnectCont
     }
 
     public func awaitReconnectReadiness() async throws {
+        // 重连前先等网络恢复，再等 circuit breaker 允许探测，避免无效快速重连。
         try await awaitReachableNetworkIfNeeded()
         try await awaitCircuitBreakerAdmissionIfNeeded()
     }
@@ -114,6 +119,7 @@ public actor DefaultNetworkStreamReconnectController: NetworkStreamReconnectCont
                     throw error
                 }
 
+                // circuit 仍 open 时按 retryAfter 或轮询间隔等待，直到可进入 half-open。
                 let delay = max(
                     retryAfter ?? circuitOpenPollInterval,
                     circuitOpenPollInterval

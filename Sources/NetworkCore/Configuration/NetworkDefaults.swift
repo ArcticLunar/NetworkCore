@@ -1,9 +1,12 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供生产可用的默认组装入口，减少业务侧重复配置。
+
 import Alamofire
 import Foundation
 
+/// 当前构建配置，用于选择默认日志和安全策略。
 public enum NetworkBuildConfiguration: String, Equatable {
     case debug
     case release
@@ -17,6 +20,7 @@ public enum NetworkBuildConfiguration: String, Equatable {
     }
 }
 
+/// 生产配置中的可观测性依赖集合。
 public struct NetworkProductionObservers {
     public let logger: NetworkLogger?
     public let metricsSink: (any NetworkMetricsSink)?
@@ -55,7 +59,9 @@ public struct NetworkProductionObservers {
     }
 }
 
+/// 常用 NetworkCore 生产配置工厂。
 public enum NetworkDefaults {
+    /// 创建带默认超时、server trust 和事件监控的 Alamofire Session。
     public static func makeSession(
         timeout: TimeInterval = 15,
         eventMonitors: [any EventMonitor] = [],
@@ -73,6 +79,7 @@ public enum NetworkDefaults {
         )
     }
 
+    /// 根据 baseURL 和构建配置生成默认安全策略。
     public static func defaultSecurityPolicy(
         for baseURL: URL,
         buildConfiguration: NetworkBuildConfiguration = .current
@@ -96,6 +103,7 @@ public enum NetworkDefaults {
         }
     }
 
+    /// 创建生产推荐的 `NetworkConfiguration`。
     public static func makeProductionConfiguration(
         environment: NetworkEnvironment,
         defaultHeaders: [String: String] = [:],
@@ -160,6 +168,7 @@ public enum NetworkDefaults {
         )
     }
 
+    /// 创建生产推荐的 `NetworkClient`，并使用 Alamofire 作为默认 transport。
     public static func makeProductionClient(
         configuration: NetworkConfiguration,
         eventMonitors: [any EventMonitor] = [],
@@ -184,6 +193,7 @@ public enum NetworkDefaults {
         )
     }
 
+    /// 生成稳定的后台下载 session identifier。
     public static func defaultBackgroundDownloadSessionIdentifier(
         bundleIdentifier: String? = Bundle.main.bundleIdentifier,
         suffix: String = "NetworkCoreBackgroundDownload"
@@ -199,6 +209,7 @@ public enum NetworkDefaults {
         return "\(resolvedBundleIdentifier).\(suffix)"
     }
 
+    /// 根据构建配置返回默认可观测性 profile。
     public static func defaultProductionObservabilityProfile(
         buildConfiguration: NetworkBuildConfiguration = .current
     ) -> NetworkObservabilityProfile {

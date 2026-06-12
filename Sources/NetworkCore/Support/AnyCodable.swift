@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供类型擦除的 Codable / Encodable 包装，用于动态 JSON 字段和泛型请求体。
+
 import Foundation
 
+/// 可以承载基础 JSON 值、数组和字典的类型擦除 Codable。
 public struct AnyCodable: Codable {
     public let value: Any?
 
@@ -60,6 +63,7 @@ public struct AnyCodable: Codable {
     }
 }
 
+/// 将任意 Encodable 值包装成统一的 Encodable 类型。
 public struct AnyEncodable: Encodable {
     private let encodeClosure: (Encoder) throws -> Void
 

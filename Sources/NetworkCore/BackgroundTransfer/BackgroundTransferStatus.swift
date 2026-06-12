@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义后台下载状态、进度和失败原因。
+
 import Foundation
 
+/// 后台下载进度快照。
 public struct BackgroundTransferProgress: Equatable, Sendable {
     public let bytesWritten: Int64
     public let totalBytesWritten: Int64
@@ -28,6 +31,7 @@ public struct BackgroundTransferProgress: Equatable, Sendable {
     }
 }
 
+/// 后台下载失败原因，用于 UI 提示和 metrics 归类。
 public enum BackgroundTransferFailureReason: Equatable, Sendable {
     case cancelled
     case offline
@@ -45,6 +49,7 @@ public enum BackgroundTransferFailureReason: Equatable, Sendable {
     case unknown
 }
 
+/// 后台下载当前状态。
 public enum BackgroundTransferState: Equatable, Sendable {
     case pending
     case running(BackgroundTransferProgress?)
@@ -57,6 +62,7 @@ public enum BackgroundTransferState: Equatable, Sendable {
     case completed(response: BackgroundTransferResponse?)
 }
 
+/// 后台下载状态快照。
 public struct BackgroundTransferStatus: Equatable, Sendable {
     public let identifier: String
     public let requestID: String?
@@ -92,6 +98,7 @@ public struct BackgroundTransferStatus: Equatable, Sendable {
 }
 
 public extension BackgroundTransferFailureReason {
+    /// 将通用错误映射为后台下载领域的失败原因。
     static func resolve(error: Error) -> BackgroundTransferFailureReason {
         if let failure = error as? NetworkFailure {
             return resolve(networkError: failure.error)

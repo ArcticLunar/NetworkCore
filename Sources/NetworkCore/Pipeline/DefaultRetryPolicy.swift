@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供默认生产 retry 策略，保护幂等请求并处理常见瞬时失败。
+
 import Foundation
 
+/// NetworkCore 默认 retry 策略。
 public struct DefaultRetryPolicy: RetryPolicy {
     public let maxRetries: Int
     public let baseDelay: TimeInterval
@@ -40,6 +43,7 @@ public struct DefaultRetryPolicy: RetryPolicy {
         retryCount: Int,
         context: NetworkRequestContext
     ) async -> RetryDecision {
+        // 默认 retry 只覆盖幂等请求，避免自动重放非幂等写操作。
         guard context.options.isIdempotent else {
             return .doNotRetry
         }
@@ -120,6 +124,7 @@ public struct DefaultRetryPolicy: RetryPolicy {
             return max(seconds, 0)
         }
 
+        // Retry-After 同时支持秒数和 HTTP-date，这里兼容服务端两种常见返回。
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)

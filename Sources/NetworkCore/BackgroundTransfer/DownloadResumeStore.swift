@@ -1,9 +1,13 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 持久化后台下载恢复所需的请求、目标路径和 resume data。
+
 import Foundation
 
+/// 可恢复后台下载的持久化记录。
 public struct BackgroundDownloadRecord: Codable, Equatable, Sendable {
+    /// URLRequest 的可编码快照。
     public struct RequestSnapshot: Codable, Equatable, Sendable {
         public let url: URL
         public let method: String
@@ -52,6 +56,7 @@ public struct BackgroundDownloadRecord: Codable, Equatable, Sendable {
         }
     }
 
+    /// 请求观测信息快照，供进程恢复后继续写日志和 metrics。
     public struct ObservabilitySnapshot: Codable, Equatable, Sendable {
         public let requestID: String
         public let environmentName: String
@@ -122,6 +127,7 @@ public struct BackgroundDownloadRecord: Codable, Equatable, Sendable {
     }
 }
 
+/// 后台下载恢复记录 store。
 public protocol DownloadResumeStore: Sendable {
     func loadAllRecords() throws -> [BackgroundDownloadRecord]
     func loadRecord(
@@ -131,6 +137,7 @@ public protocol DownloadResumeStore: Sendable {
     func removeRecord(for identifier: String) throws
 }
 
+/// 使用 JSON 文件保存后台下载恢复记录的默认 store。
 public final class FileDownloadResumeStore: DownloadResumeStore, @unchecked Sendable {
     public let directoryURL: URL
 
@@ -148,6 +155,7 @@ public final class FileDownloadResumeStore: DownloadResumeStore, @unchecked Send
         self.encoder = JSONEncoder()
         self.decoder = JSONDecoder()
 
+        // 使用 Date bitPattern 持久化，避免不同 locale 或格式化策略影响恢复记录。
         encoder.dateEncodingStrategy = .custom { date, encoder in
             var container = encoder.singleValueContainer()
             try container.encode(date.timeIntervalSinceReferenceDate.bitPattern)

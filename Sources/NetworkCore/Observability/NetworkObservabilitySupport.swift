@@ -1,6 +1,8 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供日志和 metrics 共享的错误分类、header/body 提取和安全描述能力。
+
 import Foundation
 
 enum NetworkObservabilitySupport {
@@ -37,6 +39,7 @@ enum NetworkObservabilitySupport {
                 break
             }
 
+            // 错误描述只输出结构化摘要，不输出原始 body，避免泄露敏感信息。
             return components.joined(separator: " ")
         }
 

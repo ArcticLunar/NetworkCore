@@ -1,8 +1,14 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 协调提前刷新和强制刷新，并保证凭证修改串行化。
+
 import Foundation
 
+/// 负责 token 新鲜度检查、刷新去重和凭证更新。
+///
+/// 该协调器保证同一时间只有一个刷新请求在执行。其他调用方会等待正在进行中的刷新，
+/// 而不是用同一个 token 反复发起重复刷新。
 public actor AuthRefreshCoordinator {
     private let credentialsStore: any AuthCredentialsStore
     private let refresher: any TokenRefresher
@@ -27,6 +33,8 @@ public actor AuthRefreshCoordinator {
             return nil
         }
 
+        // 即使没有过期时间，只要 access token 为空，就视为不可用；
+        // 当存在 refresh token 时，唯一安全路径就是刷新。
         if tokens.accessToken.isEmpty {
             return try await refreshToken(force: true)
         }
@@ -51,6 +59,8 @@ public actor AuthRefreshCoordinator {
 
         guard let refreshToken = tokens.refreshToken,
               tokens.hasUsableRefreshToken else {
+            // 没有可用的 refresh token 时，本地会话无法自愈。此时清理凭证，避免后续请求
+            // 反复尝试不可能成功的刷新。
             await credentialsStore.clear()
             throw NetworkError.unauthorized
         }
@@ -72,6 +82,8 @@ public actor AuthRefreshCoordinator {
             await credentialsStore.save(tokens: refreshedTokens)
             return refreshedTokens.accessToken
         } catch {
+            // 失败策略会避免瞬时刷新失败直接变成强制登出，同时在明确鉴权拒绝时
+            // 仍然清理凭证。
             if refreshFailurePolicy.shouldClearCredentials(after: error) {
                 await credentialsStore.clear()
             }

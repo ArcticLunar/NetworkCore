@@ -1,8 +1,14 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 在请求离开客户端之前，按端点要求补齐鉴权头。
+
 import Foundation
 
+/// 根据端点的鉴权要求注入认证头。
+///
+/// 如果传入 refresh 协调器，Bearer token 会优先通过它解析，从而在请求发出前完成
+/// 提前刷新和并发刷新合并。
 public struct AuthInterceptor: RequestInterceptor {
     private let credentialsStore: any AuthCredentialsStore
     private let refreshCoordinator: AuthRefreshCoordinator?
@@ -36,6 +42,8 @@ public struct AuthInterceptor: RequestInterceptor {
         case .bearerToken, .inheritGlobal:
             let token: String?
 
+            // 协调器负责新鲜度检查和刷新去重；回退到 store 则让简单接入在
+            // 由应用其他位置处理刷新时保持轻量。
             if let refreshCoordinator {
                 token = try await refreshCoordinator.validAccessToken()
             } else {

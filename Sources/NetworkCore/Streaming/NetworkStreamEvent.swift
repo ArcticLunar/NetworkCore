@@ -1,13 +1,17 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义流式连接类型、重连策略和原始事件模型。
+
 import Foundation
 
+/// 流式连接协议类型。
 public enum NetworkStreamKind: Sendable {
     case serverSentEvents
     case webSocket
 }
 
+/// 重连 backoff 策略。
 public enum NetworkStreamReconnectBackoff: Equatable, Sendable {
     case fixed(delay: TimeInterval, jitterRatio: Double = 0)
     case exponential(
@@ -54,6 +58,7 @@ public enum NetworkStreamReconnectBackoff: Equatable, Sendable {
             maximumDelay = safeMaximumDelay
         }
 
+        // jitter 限制在 0...1，避免配置错误导致负延迟或无限放大。
         let safeJitterRatio = min(max(jitterRatio, 0), 1)
 
         guard baseDelay > 0, safeJitterRatio > 0 else {
@@ -72,6 +77,7 @@ public enum NetworkStreamReconnectBackoff: Equatable, Sendable {
     }
 }
 
+/// 重连预算，用于限制某个时间窗口内的重连频率。
 public struct NetworkStreamReconnectBudget: Equatable, Sendable {
     public let maximumAttempts: Int
     public let interval: TimeInterval
@@ -113,6 +119,7 @@ public struct NetworkStreamReconnectBudget: Equatable, Sendable {
     }
 }
 
+/// 触发重连的原因。
 public enum NetworkStreamReconnectReason: Hashable, Sendable {
     case networkInterruption
     case abnormalClosure
@@ -121,6 +128,7 @@ public enum NetworkStreamReconnectReason: Hashable, Sendable {
     case customCloseCode(Int)
 }
 
+/// 流式连接重连策略。
 public struct NetworkStreamReconnectPolicy: Equatable, Sendable {
     public let maximumAttempts: Int
     public let backoff: NetworkStreamReconnectBackoff
@@ -166,6 +174,7 @@ public struct NetworkStreamReconnectPolicy: Equatable, Sendable {
     }
 }
 
+/// 流连接打开事件携带的元数据。
 public struct NetworkStreamMetadata: Equatable, Sendable {
     public let statusCode: Int?
     public let headers: [String: String]?
@@ -182,6 +191,7 @@ public struct NetworkStreamMetadata: Equatable, Sendable {
     }
 }
 
+/// 一次重连打开事件携带的元数据。
 public struct NetworkStreamReconnectMetadata: Equatable, Sendable {
     public let attempt: Int
     public let reason: NetworkStreamReconnectReason
@@ -201,11 +211,13 @@ public struct NetworkStreamReconnectMetadata: Equatable, Sendable {
     }
 }
 
+/// 收到的消息来源类型。
 public enum NetworkStreamMessageKind: String, Equatable, Sendable {
     case webSocketMessage = "websocket"
     case serverSentEvent = "sse"
 }
 
+/// 收到消息时用于观测的元数据。
 public struct NetworkStreamMessageMetadata: Equatable, Sendable {
     public let sequenceNumber: Int
     public let kind: NetworkStreamMessageKind
@@ -222,6 +234,7 @@ public struct NetworkStreamMessageMetadata: Equatable, Sendable {
     }
 }
 
+/// Server-Sent Events 的单条事件。
 public struct ServerSentEvent: Equatable, Sendable {
     public let id: String?
     public let event: String?
@@ -241,6 +254,7 @@ public struct ServerSentEvent: Equatable, Sendable {
     }
 }
 
+/// 底层流式连接产生的原始事件。
 public enum NetworkStreamEvent: Equatable, Sendable {
     case open(metadata: NetworkStreamMetadata?)
     case message(Data)

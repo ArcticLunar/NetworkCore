@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义 observer 接收的请求、流式和 circuit breaker 事件载荷。
+
 import Foundation
 
+/// 普通请求完成时的统计元数据。
 public struct NetworkEventMetadata: Equatable, Sendable {
     public let duration: TimeInterval
     public let retryCount: Int
@@ -22,6 +25,7 @@ public struct NetworkEventMetadata: Equatable, Sendable {
     }
 }
 
+/// 流式连接结束时的统计元数据。
 public struct NetworkStreamEventMetadata: Equatable, Sendable {
     public let duration: TimeInterval
     public let eventCount: Int
@@ -44,12 +48,14 @@ public struct NetworkStreamEventMetadata: Equatable, Sendable {
     }
 }
 
+/// Circuit breaker 状态阶段。
 public enum CircuitBreakerStatePhase: String, Equatable, Sendable {
     case closed
     case open
     case halfOpen = "half_open"
 }
 
+/// Circuit breaker 状态转换原因。
 public enum CircuitBreakerTransitionTrigger: String, Equatable, Sendable {
     case failureThresholdReached = "failure_threshold_reached"
     case recoveryProbeStarted = "recovery_probe_started"
@@ -57,6 +63,7 @@ public enum CircuitBreakerTransitionTrigger: String, Equatable, Sendable {
     case recoveryProbeFailed = "recovery_probe_failed"
 }
 
+/// Circuit breaker 状态转换事件元数据。
 public struct CircuitBreakerTransitionMetadata: Equatable, Sendable {
     public let fromState: CircuitBreakerStatePhase
     public let toState: CircuitBreakerStatePhase
@@ -73,6 +80,7 @@ public struct CircuitBreakerTransitionMetadata: Equatable, Sendable {
     }
 }
 
+/// 普通请求完成事件。
 public enum NetworkEvent {
     case success(
         context: NetworkRequestContext,

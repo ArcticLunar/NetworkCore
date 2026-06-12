@@ -1,15 +1,25 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义 NetworkCore 自定义缓存策略，并映射到 URLCache 行为。
+
 import Foundation
 
+/// 请求级缓存策略。
 public enum NetworkCachePolicy: Equatable, Sendable {
+    /// 遵循系统协议缓存策略。
     case useProtocolCachePolicy
+    /// 忽略本地缓存，直接请求网络。
     case reloadIgnoringCache
+    /// 有可用缓存时返回缓存，否则请求网络。
     case returnCacheElseLoad
+    /// 先返回缓存，再在后台重验证。
     case staleWhileRevalidate
+    /// 只写入内存缓存。
     case memoryOnly
+    /// 允许写入磁盘缓存。
     case disk
+    /// 不读取也不写入缓存，并移除已缓存响应。
     case noStore
 }
 

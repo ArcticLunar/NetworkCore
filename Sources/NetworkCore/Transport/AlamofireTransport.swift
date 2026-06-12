@@ -1,9 +1,12 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 使用 Alamofire 执行普通请求、上传、前台下载和后台下载排队。
+
 import Alamofire
 import Foundation
 
+/// 基于 Alamofire 的默认 transport 实现。
 public final class AlamofireTransport: NetworkTransport, @unchecked Sendable {
     private enum TransportInternalError: Error {
         case missingHTTPResponse
@@ -155,6 +158,8 @@ public final class AlamofireTransport: NetworkTransport, @unchecked Sendable {
                 context: context
             )
         )
+        // 后台下载是异步排队语义，这里返回 202 表示任务已被接受，真实完成状态
+        // 通过 BackgroundDownloadManager 的事件流继续通知。
         let acceptedResponse = try makeAcceptedResponse(for: request)
 
         return TransportResponse(

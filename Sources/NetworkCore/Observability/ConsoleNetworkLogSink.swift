@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将结构化网络日志输出到控制台。
+
 import Foundation
 
+/// 默认 console 日志 sink，DEBUG 默认开启，RELEASE 默认关闭。
 public struct ConsoleNetworkLogSink: NetworkLogSink {
     private let enabled: Bool
 
@@ -17,6 +20,7 @@ public struct ConsoleNetworkLogSink: NetworkLogSink {
     public func log(_ record: NetworkLogRecord) {
         guard enabled else { return }
 
+        // 输出 JSON 风格 payload，方便本地复制和日志系统解析。
         let payload = serializedPayload(for: record)
         let output: String
 

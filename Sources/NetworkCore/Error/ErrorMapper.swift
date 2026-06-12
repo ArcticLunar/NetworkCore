@@ -1,9 +1,13 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将 Foundation、Alamofire 和框架内部错误收敛为 NetworkError / NetworkFailure。
+
 import Foundation
 
+/// 错误映射工具，保证上层看到稳定的错误分类和上下文。
 public enum ErrorMapper {
+    /// 将任意错误映射为 `NetworkError`，保留已映射错误不重复包装。
     public static func map(_ error: Error) -> NetworkError {
         if let failure = error as? NetworkFailure {
             return failure.error
@@ -24,6 +28,7 @@ public enum ErrorMapper {
         return .transport(underlying: error)
     }
 
+    /// 将任意错误映射为带请求上下文的 `NetworkFailure`。
     public static func map(
         _ error: Error,
         context: NetworkRequestContext,
@@ -51,6 +56,7 @@ public enum ErrorMapper {
         )
     }
 
+    /// 将 URLError 细分为更利于业务处理和排障的网络错误。
     static func map(_ error: URLError) -> NetworkError {
         switch error.code {
         case .timedOut:

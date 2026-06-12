@@ -1,9 +1,13 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将端点声明转换成 transport 可执行的 URLRequest 和任务类型。
+
 import Foundation
 
+/// 请求构建器，集中处理 URL、header、body、缓存策略和任务类型转换。
 public enum RequestBuilder {
+    /// 构建普通 HTTP 端点请求。
     public static func build<E: APIEndpoint>(
         endpoint: E,
         configuration: NetworkConfiguration
@@ -19,6 +23,7 @@ public enum RequestBuilder {
         )
     }
 
+    /// 构建流式端点请求。
     public static func build<E: StreamingEndpoint>(
         endpoint: E,
         configuration: NetworkConfiguration
@@ -57,6 +62,7 @@ public enum RequestBuilder {
             configuration: configuration
         )
 
+        // 先写全局 header，再写端点 header，让端点可以覆盖同名字段。
         configuration.defaultHeaders.forEach {
             request.setValue($1, forHTTPHeaderField: $0)
         }
@@ -84,6 +90,7 @@ public enum RequestBuilder {
         let networkCachePolicy = options.networkCachePolicy
             ?? configuration.defaultNetworkCachePolicy
 
+        // 自定义缓存策略会映射回 URLRequest.CachePolicy，保证 transport 层仍使用系统语义。
         switch networkCachePolicy {
         case .useProtocolCachePolicy:
             return configuration.defaultCachePolicy
@@ -121,6 +128,7 @@ public enum RequestBuilder {
             )
 
         case let .webSocket(queryItems, _):
+            // WebSocket 端点复用 HTTP/HTTPS baseURL，但发起连接前必须转换成 ws/wss。
             let websocketURL = try websocketURL(from: fullURL)
             return try appendQueryItems(
                 queryItems,

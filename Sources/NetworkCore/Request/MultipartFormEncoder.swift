@@ -1,9 +1,12 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将 MultipartFormPart 编码为 multipart/form-data body。
+
 import Foundation
 
 enum MultipartFormEncoder {
+    // boundary 需要同时写入 Content-Type 和 body 分隔符，保持单次构建内一致。
     static let boundary = "Boundary-\(UUID().uuidString)"
 
     static func encode(parts: [MultipartFormPart]) throws -> Data {

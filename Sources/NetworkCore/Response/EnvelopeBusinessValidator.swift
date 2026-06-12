@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 使用业务 envelope 校验 code 和 unauthorized 状态。
+
 import Foundation
 
+/// 基于 `ResponseEnvelope` 的业务响应 validator。
 public struct EnvelopeBusinessValidator<Envelope: ResponseEnvelope>: BusinessResponseValidator {
     private let decoder: JSONDecoder
 
@@ -27,6 +30,7 @@ public struct EnvelopeBusinessValidator<Envelope: ResponseEnvelope>: BusinessRes
             throw NetworkError.unauthorized
         }
 
+        // HTTP 成功不代表业务成功，业务失败需要带原始 data 上抛给调用方排障。
         guard envelope.isSuccess else {
             throw NetworkError.business(
                 code: envelope.safeCode,

@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将 observer 事件转换为结构化日志记录。
+
 import Foundation
 
+/// NetworkCore 默认日志 observer。
 public struct NetworkLogger: NetworkObserver {
     private let sink: any NetworkLogSink
     private let redactor: any NetworkRedactor
@@ -295,6 +298,7 @@ public struct NetworkLogger: NetworkObserver {
         context: NetworkRequestContext,
         isFailure: Bool
     ) -> Bool {
+        // body 日志受端点开关和 profile 双重控制，避免 release 环境误打敏感数据。
         guard context.options.allowsBodyLogging ?? true else {
             return false
         }

@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 实现请求构建、拦截、缓存、重试、解码、可观测性和流式连接的主客户端。
+
 import Foundation
 
+/// NetworkCore 的默认客户端实现，负责把端点声明转换成可执行的网络流程。
 public actor NetworkClient: NetworkClientProtocol {
     private final class EndpointStreamMapper<E: StreamingEndpoint>: @unchecked Sendable {
         private let endpoint: E
@@ -82,6 +85,7 @@ public actor NetworkClient: NetworkClientProtocol {
                 throw NetworkError.invalidResponse
             }
 
+            // 空响应端点不进入 JSON 解码，避免无 body 的 204/空包被误判为解码错误。
             if result.response.data.isEmpty, E.Response.self == EmptyResponse.self {
                 responseBody = EmptyResponse() as! E.Response
             } else {
@@ -568,6 +572,8 @@ public actor NetworkClient: NetworkClientProtocol {
             let cachedResponseIsFresh = cachedResponse.map {
                 isFresh($0, timeToLive: cacheTimeToLive)
             } ?? false
+            // stale-while-revalidate 可以立即返回缓存；其他缓存策略只有在缓存仍新鲜时
+            // 才直接返回，避免把过期数据伪装成正常网络响应。
             let canReturnCachedResponse =
                 retryCount == 0
                 && allowsCacheRead
@@ -602,6 +608,7 @@ public actor NetworkClient: NetworkClientProtocol {
                 )
             }
 
+            // 对可写缓存的过期响应做条件重验证，优先用 ETag / Last-Modified 换取 304。
             if retryCount == 0,
                let cachedPayload,
                cachePolicy.readsFromCacheStore,
@@ -935,6 +942,7 @@ public actor NetworkClient: NetworkClientProtocol {
             cachedResponse: cachedResponse
         )
 
+        // 后台刷新不影响当前请求返回值；失败被吞掉，避免缓存再验证破坏主流程。
         Task { [weak self] in
             guard let self else { return }
 

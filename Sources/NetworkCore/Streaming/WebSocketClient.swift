@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 实现 WebSocket 连接、收发、ping、关闭和重连。
+
 import Foundation
 
+/// URLSessionWebSocketTask 的可测试抽象。
 public protocol WebSocketTasking: Sendable {
     func resume()
     func receive() async throws -> URLSessionWebSocketTask.Message
@@ -14,12 +17,14 @@ public protocol WebSocketTasking: Sendable {
     var closeReason: Data? { get }
 }
 
+/// 创建 WebSocket task 的抽象，便于测试替换。
 public protocol WebSocketTaskLoading: Sendable {
     func makeTask(request: URLRequest) -> any WebSocketTasking
 }
 
 extension URLSessionWebSocketTask: WebSocketTasking {}
 
+/// 基于 URLSession 的 WebSocket task loader。
 public struct URLSessionWebSocketTaskLoader: WebSocketTaskLoading {
     private let urlSession: URLSession
 
@@ -32,6 +37,7 @@ public struct URLSessionWebSocketTaskLoader: WebSocketTaskLoading {
     }
 }
 
+/// WebSocket 客户端，负责创建可重连的连接。
 public final class WebSocketClient: @unchecked Sendable {
     private let loader: any WebSocketTaskLoading
     private let appLifecycleMonitor: any NetworkAppLifecycleMonitor
@@ -60,6 +66,7 @@ public final class WebSocketClient: @unchecked Sendable {
 }
 
 private final class URLSessionWebSocketConnection: NetworkStreamConnection, @unchecked Sendable {
+    // 1012 表示 service restart，通常适合按策略重连。
     private static let serviceRestartCloseCode = 1012
 
     let events: AsyncThrowingStream<NetworkStreamEvent, Error>
@@ -289,6 +296,7 @@ private final class URLSessionWebSocketConnection: NetworkStreamConnection, @unc
             return
         }
 
+        // WebSocket 重连前等待应用回到 active，避免后台状态下反复建连失败。
         await appLifecycleMonitor.waitUntilActive()
 
         if Task.isCancelled || lock.withLock({ isClosed }) {

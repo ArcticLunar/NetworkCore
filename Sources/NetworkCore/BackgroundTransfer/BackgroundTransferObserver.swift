@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义后台下载事件的 observer 和 metrics 实现。
+
 import Foundation
 
+/// 后台下载 observer 接收到的事件上下文。
 public struct BackgroundTransferObservation: Sendable {
     public let event: BackgroundTransferEvent
     public let record: BackgroundDownloadRecord?
@@ -19,10 +22,13 @@ public struct BackgroundTransferObservation: Sendable {
     }
 }
 
+/// 监听后台下载生命周期事件。
 public protocol BackgroundTransferObserver {
+    /// 每当后台下载产生事件时调用。
     func backgroundTransferDidEmit(_ observation: BackgroundTransferObservation)
 }
 
+/// 将后台下载事件转换成 metrics。
 public struct BackgroundTransferMetricsObserver: BackgroundTransferObserver {
     private let sink: any NetworkMetricsSink
 

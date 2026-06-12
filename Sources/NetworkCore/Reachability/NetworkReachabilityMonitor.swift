@@ -1,13 +1,18 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 抽象系统网络可达性监听，供请求前置 gating 和离线重试使用。
+
 import Foundation
 #if canImport(Network)
 import Network
 #endif
 
+/// 提供当前网络路径状态，并支持等待满足指定网络要求。
 public protocol NetworkReachabilityMonitor: Sendable {
+    /// 返回当前网络路径快照。
     func currentPathStatus() async -> NetworkPathStatus
+    /// 等待网络满足指定要求；超时或取消时返回 nil。
     func waitUntilSatisfied(
         _ requirement: NetworkReachabilityRequirement,
         timeout: TimeInterval?
@@ -15,6 +20,7 @@ public protocol NetworkReachabilityMonitor: Sendable {
 }
 
 #if canImport(Network)
+/// 基于 `NWPathMonitor` 的系统网络可达性实现。
 public final actor SystemNetworkReachabilityMonitor: NetworkReachabilityMonitor {
     private struct Waiter {
         let requirement: NetworkReachabilityRequirement
@@ -71,6 +77,7 @@ public final actor SystemNetworkReachabilityMonitor: NetworkReachabilityMonitor 
                         return
                     }
 
+                    // 每个 waiter 自己管理超时，避免一个全局 timer 影响其它等待者。
                     Task {
                         try? await Task.sleep(
                             nanoseconds: UInt64(timeout * 1_000_000_000)

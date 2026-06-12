@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 根据流类型分派到 SSE 或 WebSocket 客户端。
+
 import Foundation
 
+/// 打开底层流式连接的 transport 抽象。
 public protocol NetworkStreamTransport: Sendable {
     func openConnection(
         _ request: TransportRequest,
@@ -12,6 +15,7 @@ public protocol NetworkStreamTransport: Sendable {
     ) async throws -> any NetworkStreamConnection
 }
 
+/// 默认流式 transport 实现。
 public final class DefaultNetworkStreamTransport: NetworkStreamTransport, @unchecked Sendable {
     private let sseClient: SSEClient
     private let webSocketClient: WebSocketClient

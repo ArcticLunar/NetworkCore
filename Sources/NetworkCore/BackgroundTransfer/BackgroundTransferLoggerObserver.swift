@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 将后台下载事件转换为结构化日志。
+
 import Foundation
 
+/// 后台下载日志 observer。
 public struct BackgroundTransferLoggerObserver: BackgroundTransferObserver {
     private let sink: any NetworkLogSink
     private let redactor: any NetworkRedactor
@@ -22,6 +25,7 @@ public struct BackgroundTransferLoggerObserver: BackgroundTransferObserver {
     private func makeRecord(
         from observation: BackgroundTransferObservation
     ) -> NetworkLogRecord {
+        // 优先使用下载记录中的 observability 快照，恢复进程后仍能关联原请求。
         let identifier = identifier(from: observation.event)
         let requestID = observation.record?.observability?.requestID
             ?? identifier

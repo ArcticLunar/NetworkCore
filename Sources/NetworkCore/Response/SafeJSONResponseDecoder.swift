@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 支持 strict / safe 两种策略的 JSON 响应解码器。
+
 import Foundation
 
+/// 默认响应解码器，safe 模式下会收集容错解码警告数量。
 public struct SafeJSONResponseDecoder: ResponseDecoder {
     public init() {}
 

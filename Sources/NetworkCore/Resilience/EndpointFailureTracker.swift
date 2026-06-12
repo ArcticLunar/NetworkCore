@@ -1,9 +1,13 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 按 endpoint 维度跟踪失败次数和 circuit breaker 状态。
+
 import Foundation
 
+/// 管理 endpoint circuit breaker 状态的 actor。
 public actor EndpointFailureTracker {
+    /// 用于区分 endpoint 熔断状态的 key。
     public struct EndpointKey: Hashable, Sendable {
         public let identifier: String
 
@@ -12,6 +16,7 @@ public actor EndpointFailureTracker {
         }
     }
 
+    /// 一次请求通过 circuit breaker 检查后的准入凭证。
     public struct Admission: Sendable {
         public enum Kind: Sendable {
             case closed
@@ -50,6 +55,7 @@ public actor EndpointFailureTracker {
                 )
             }
 
+            // open 期结束后只放行探测请求，避免瞬间恢复大量流量。
             states[key] = .halfOpen(activeProbeCount: 1)
             return Admission(key: key, kind: .halfOpenProbe)
 

@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义日志采集策略、metrics 维度策略和默认观测 profile。
+
 import Foundation
 
+/// 日志中 body 的采集模式。
 public enum NetworkLogBodyCaptureMode: Equatable, Sendable {
     case none
     case redacted
@@ -10,6 +13,7 @@ public enum NetworkLogBodyCaptureMode: Equatable, Sendable {
     case redactedErrorsOnly
 }
 
+/// 控制请求/响应头和 body 是否进入日志。
 public struct NetworkLoggingPolicy: Equatable, Sendable {
     public let includesRequestHeaders: Bool
     public let includesResponseHeaders: Bool
@@ -59,6 +63,7 @@ public struct NetworkLoggingPolicy: Equatable, Sendable {
     )
 }
 
+/// 控制 metrics 维度值的长度，避免高基数或超长标签污染上报。
 public struct NetworkMetricsDimensionsPolicy: Equatable, Sendable {
     public let maximumValueLength: Int?
 
@@ -86,6 +91,7 @@ public struct NetworkMetricsDimensionsPolicy: Equatable, Sendable {
     }
 }
 
+/// 组合日志和 metrics 维度策略的观测 profile。
 public struct NetworkObservabilityProfile {
     public let logger: NetworkLogger?
     public let metricsDimensionsPolicy: NetworkMetricsDimensionsPolicy

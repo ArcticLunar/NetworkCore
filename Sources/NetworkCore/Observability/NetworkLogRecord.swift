@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义网络日志的结构化字段，便于输出到 console、文件或远端采集系统。
+
 import Foundation
 
+/// 日志阶段。
 public enum NetworkLogPhase: String {
     case start
     case retry
@@ -22,6 +25,7 @@ public enum NetworkLogPhase: String {
     case backgroundFailed = "background_failed"
 }
 
+/// 一条结构化网络日志。
 public struct NetworkLogRecord {
     public let phase: NetworkLogPhase
     public let requestID: String

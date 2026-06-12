@@ -1,9 +1,13 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 定义 SSE 和 WebSocket 流式端点的声明式契约。
+
 import Foundation
 
+/// 描述一个可以打开长连接并持续产出事件的端点。
 public protocol StreamingEndpoint {
+    /// 调用方最终消费的事件类型。
     associatedtype Event: Sendable
 
     var path: String { get }
@@ -17,6 +21,7 @@ public protocol StreamingEndpoint {
     var decodingPolicy: NetworkDecodingPolicy? { get }
     var streamKind: NetworkStreamKind { get }
 
+    /// 将底层流事件映射成业务事件；返回 `nil` 表示该事件仅用于连接状态或观测。
     func mapStreamEvent(_ event: NetworkStreamEvent) throws -> Event?
 }
 
@@ -36,6 +41,7 @@ public extension StreamingEndpoint {
 }
 
 public extension StreamingEndpoint where Event: Decodable {
+    /// 默认把 WebSocket message 或 SSE data 当作 JSON 解码为业务事件。
     func mapStreamEvent(_ event: NetworkStreamEvent) throws -> Event? {
         switch event {
         case let .message(data):

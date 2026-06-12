@@ -1,8 +1,11 @@
 // Copyright (c) 2026 ArcticLunar
 // All rights reserved.
 
+// 提供一套默认 API envelope 实现，适配常见 code/message/data 响应结构。
+
 import Foundation
 
+/// 默认业务响应外壳。
 public struct APIResponseEnvelope<T: Decodable>: ResponseEnvelope {
     public let code: Int?
     public let message: String?
